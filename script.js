@@ -1,59 +1,43 @@
-// База данных
-let state = JSON.parse(localStorage.getItem('crmData')) || {
-    employees: [], // Список людей
-    roles: ['Куратор', 'Инструктор', 'Стажер'] // Начальные роли
-};
+let data = JSON.parse(localStorage.getItem('myCrmData')) || [];
 
-function save() { localStorage.setItem('crmData', JSON.stringify(state)); }
-
-// Функция отображения страниц
-function showPage(page) {
-    const body = document.getElementById('page-body');
-    const title = document.getElementById('page-title');
-    title.innerText = page === 'sostav' ? 'Состав' : page === 'settings' ? 'Настройки' : page;
+function renderPage(page) {
+    const content = document.getElementById('content');
+    const title = document.getElementById('title');
     
-    body.innerHTML = ''; 
-
-    if (page === 'settings') {
-        body.innerHTML = `
-            <div class="space-y-4 bg-gray-900 p-6 rounded">
-                <input id="name" placeholder="Никнейм" class="bg-black border border-gray-700 p-2 w-full">
-                <input id="discord" placeholder="Дискорд тег" class="bg-black border border-gray-700 p-2 w-full">
-                <select id="role" class="bg-black border border-gray-700 p-2 w-full">
-                    ${state.roles.map(r => `<option>${r}</option>`).join('')}
-                </select>
-                <button onclick="addEmployee()" class="bg-blue-600 px-4 py-2 rounded">Добавить сотрудника</button>
-            </div>
-        `;
-    } 
-    else if (page === 'sostav') {
-        body.innerHTML = `
+    title.innerText = page === 'sostav' ? 'Состав' : 'Настройки';
+    
+    if (page === 'sostav') {
+        content.innerHTML = `
             <table class="w-full text-left">
-                ${state.employees.map(e => `
+                ${data.map(e => `
                     <tr class="border-b border-gray-800">
                         <td class="p-3">${e.name}</td>
-                        <td class="p-3 text-gray-400">${e.discord}</td>
-                        <td class="p-3 text-blue-400">${e.role}</td>
+                        <td class="p-3 text-gray-400">${e.role}</td>
                     </tr>
                 `).join('')}
             </table>
         `;
+    } else {
+        content.innerHTML = `
+            <div class="space-y-4">
+                <input id="in-name" placeholder="Ник" class="block w-full p-2 bg-gray-900 border border-gray-700">
+                <input id="in-role" placeholder="Роль" class="block w-full p-2 bg-gray-900 border border-gray-700">
+                <button onclick="saveData()" class="bg-blue-600 px-4 py-2 rounded">Сохранить</button>
+            </div>
+        `;
     }
 }
 
-// Функция добавления
-function addEmployee() {
-    const name = document.getElementById('name').value;
-    const discord = document.getElementById('discord').value;
-    const role = document.getElementById('role').value;
-    
-    if(!name) return alert('Введите ник!');
-    
-    state.employees.push({ name, discord, role });
-    save();
-    alert('Готово!');
-    showPage('sostav'); // Автоматом перекидываем в состав
+function saveData() {
+    const name = document.getElementById('in-name').value;
+    const role = document.getElementById('in-role').value;
+    if(name) {
+        data.push({ name, role });
+        localStorage.setItem('myCrmData', JSON.stringify(data));
+        alert('Сохранено!');
+        renderPage('sostav');
+    }
 }
 
-// Запуск
-showPage('sostav');
+// Запуск при загрузке
+document.addEventListener('DOMContentLoaded', () => renderPage('sostav'));
