@@ -1,6 +1,6 @@
-// Просто добавь сюда новые строки, когда появятся люди
-const database = [
-    { name: "Иван Иванов", role: "Куратор", points: 2500, warns: 0 },
-    { name: "Петр Петров", role: "Инструктор", points: 1200, warns: 1 },
-    { name: "Анна Сидорова", role: "Заместитель", points: 3100, warns: 0 }
-];
+const db = JSON.parse(localStorage.getItem('crmData')) || {
+    employees: [],
+    roles: ['Куратор', 'Инструктор', 'Стажер']
+};
+
+function saveDb() { localStorage.setItem('crmData', JSON.stringify(db)); }
