@@ -1,27 +1,21 @@
 <!DOCTYPE html>
 <html lang="ru" class="dark">
 <head>
+    <meta charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="script.js" defer></script>
 </head>
 <body class="bg-black text-white flex h-screen">
-    <!-- Боковая панель -->
     <nav class="w-64 bg-gray-900 p-6 border-r border-gray-800">
-        <h2 class="text-xl font-bold mb-8">CRM PAI</h2>
+        <h2 class="text-xl font-bold mb-8 text-blue-500">CRM PAI</h2>
         <ul class="space-y-4">
-            <li><button onclick="showPage('sostav')" class="w-full text-left">Состав</button></li>
-            <li><button onclick="showPage('warnings')" class="w-full text-left">Выговоры</button></li>
-            <li><button onclick="showPage('meetings')" class="w-full text-left">Собрания</button></li>
-            <li><button onclick="showPage('reports')" class="w-full text-left">Отчеты</button></li>
-            <li><button onclick="showPage('settings')" class="w-full text-left">Настройки</button></li>
+            <li><button onclick="renderPage('sostav')" class="hover:text-blue-400">Состав</button></li>
+            <li><button onclick="renderPage('settings')" class="hover:text-blue-400">Настройки</button></li>
         </ul>
     </nav>
-
-    <!-- Основное окно -->
-    <main class="flex-1 p-8 overflow-y-auto" id="main-content">
-        <h1 id="page-title" class="text-2xl font-bold mb-6">Состав</h1>
-        <div id="page-body"></div>
+    <main class="flex-1 p-8">
+        <h1 id="title" class="text-2xl font-bold mb-6">Состав</h1>
+        <div id="content"></div>
     </main>
-
-    <script src="script.js"></script>
 </body>
 </html>
