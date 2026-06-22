@@ -3,19 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="script.js" defer></script>
+    <style>
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
 </head>
-<body class="bg-black text-white flex h-screen">
-    <nav class="w-64 bg-gray-900 p-6 border-r border-gray-800">
-        <h2 class="text-xl font-bold mb-8 text-blue-500">CRM PAI</h2>
-        <ul class="space-y-4">
-            <li><button onclick="renderPage('sostav')" class="hover:text-blue-400">Состав</button></li>
-            <li><button onclick="renderPage('settings')" class="hover:text-blue-400">Настройки</button></li>
-        </ul>
+<body class="bg-black text-white flex h-screen font-sans">
+    <nav class="w-64 bg-gray-900 p-6 border-r border-gray-800 space-y-6">
+        <h2 class="text-xl font-bold text-blue-500">PAI CRM V2</h2>
+        <div class="space-y-2">
+            <button onclick="render('sostav')" class="w-full text-left p-2 hover:bg-gray-800 rounded">Состав</button>
+            <button onclick="render('warnings')" class="w-full text-left p-2 hover:bg-gray-800 rounded">Выговоры</button>
+            <button onclick="render('meetings')" class="w-full text-left p-2 hover:bg-gray-800 rounded">Собрания</button>
+            <button onclick="render('reports')" class="w-full text-left p-2 hover:bg-gray-800 rounded">Отчеты</button>
+            <button onclick="render('settings')" class="w-full text-left p-2 hover:bg-gray-800 rounded">Настройки</button>
+        </div>
     </nav>
-    <main class="flex-1 p-8">
-        <h1 id="title" class="text-2xl font-bold mb-6">Состав</h1>
-        <div id="content"></div>
+    <main class="flex-1 p-8 overflow-y-auto">
+        <h1 id="page-title" class="text-3xl font-bold mb-6">Состав</h1>
+        <div id="content" class="fade-in"></div>
     </main>
+    <script src="script.js"></script>
 </body>
 </html>
