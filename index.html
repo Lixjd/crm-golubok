@@ -3,18 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .page { display: none; }
+        .active { display: block; }
+    </style>
 </head>
-<body class="bg-black text-white flex h-screen">
-    <nav class="w-64 bg-gray-900 p-6 border-r border-gray-800">
+<body class="bg-black text-white flex h-screen font-sans">
+    <nav class="w-64 bg-gray-900 p-6 border-r border-gray-800 space-y-4">
         <h2 class="text-xl font-bold text-blue-500 mb-8">PAI CRM V2</h2>
-        <div class="space-y-4">
-            <button onclick="render('sostav')" class="block w-full text-left hover:text-blue-400">Состав</button>
-            <button onclick="render('warnings')" class="block w-full text-left hover:text-blue-400">Выговоры</button>
-            <button onclick="render('settings')" class="block w-full text-left hover:text-blue-400">Настройки</button>
-        </div>
+        <button onclick="render('sostav')" class="block w-full text-left hover:text-blue-400">Состав</button>
+        <button onclick="render('warnings')" class="block w-full text-left hover:text-blue-400">Выговоры</button>
+        <button onclick="render('meetings')" class="block w-full text-left hover:text-blue-400">Собрания</button>
+        <button onclick="render('reports')" class="block w-full text-left hover:text-blue-400">Отчеты</button>
+        <button onclick="render('settings')" class="block w-full text-left hover:text-blue-400">Настройки</button>
     </nav>
     <main class="flex-1 p-8">
-        <h1 id="page-title" class="text-3xl font-bold mb-6">Состав</h1>
+        <h1 id="title" class="text-3xl font-bold mb-6">Состав</h1>
         <div id="content"></div>
     </main>
 
