@@ -1,24 +1,612 @@
 <!DOCTYPE html>
-<html lang="ru" class="dark">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-black text-white flex h-screen font-sans">
-    <nav class="w-64 bg-gray-900 p-6 border-r border-gray-800 space-y-4">
-        <h2 class="text-xl font-bold text-blue-500 mb-8">PAI CRM</h2>
-        <button onclick="render('sostav')" class="block w-full text-left hover:text-blue-400">Состав</button>
-        <button onclick="render('warnings')" class="block w-full text-left hover:text-blue-400">Выговоры</button>
-        <button onclick="render('meetings')" class="block w-full text-left hover:text-blue-400">Собрания</button>
-        <button onclick="render('reports')" class="block w-full text-left hover:text-blue-400">Отчеты</button>
-        <button onclick="render('settings')" class="block w-full text-left hover:text-blue-400">Настройки</button>
-    </nav>
-    <main class="flex-1 p-8">
-        <h1 id="title" class="text-3xl font-bold mb-6">Состав</h1>
-        <div id="content"></div>
-    </main>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Discord Сервер</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    <script src="data.js"></script>
-    <script src="script.js"></script>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #1e1f22;
+            color: #dbdee1;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 220px;
+            background: #2b2d31;
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border-right: 1px solid #3f4147;
+            flex-shrink: 0;
+        }
+
+        .sidebar button {
+            background: transparent;
+            border: none;
+            color: #b5bac1;
+            font-size: 15px;
+            font-weight: 500;
+            padding: 12px 16px;
+            border-radius: 10px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: inherit;
+        }
+
+        .sidebar button:hover {
+            background: #3a3c43;
+            color: #f2f3f5;
+        }
+
+        .sidebar button.active {
+            background: #404249;
+            color: #f2f3f5;
+        }
+
+        /* MAIN */
+        .main {
+            flex: 1;
+            padding: 28px 32px;
+            overflow-y: auto;
+            background: #1e1f22;
+        }
+
+        .section {
+            display: none;
+            animation: fade 0.2s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fade {
+            0% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        h2 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            letter-spacing: -0.3px;
+            color: #f2f3f5;
+        }
+
+        .card {
+            background: #2b2d31;
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            border: 1px solid #3f4147;
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 14px;
+            color: #dbdee1;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input, select, button {
+            font-family: inherit;
+        }
+
+        input, select {
+            background: #1e1f22;
+            border: 1px solid #3f4147;
+            border-radius: 8px;
+            padding: 8px 14px;
+            color: #dbdee1;
+            font-size: 14px;
+            outline: none;
+            transition: 0.15s;
+        }
+
+        input:focus, select:focus {
+            border-color: #5865f2;
+        }
+
+        .btn-primary {
+            background: #5865f2;
+            border: none;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .btn-primary:hover {
+            background: #4752c4;
+        }
+
+        .btn-danger {
+            background: #da373c;
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .btn-danger:hover {
+            background: #b32c30;
+        }
+
+        .badge {
+            background: #3a3c43;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 13px;
+            display: inline-block;
+        }
+
+        .member-list, .report-list, .reprimand-list, .meeting-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .member-item, .report-item, .reprimand-item {
+            background: #1e1f22;
+            padding: 10px 14px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #5865f2;
+        }
+
+        .role-tag {
+            background: #3a3c43;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .mt-2 { margin-top: 14px; }
+        .mb-1 { margin-bottom: 6px; }
+        .gap-2 { gap: 8px; }
+
+        @media (max-width: 700px) {
+            .sidebar { width: 170px; padding: 14px 8px; }
+            .main { padding: 20px 16px; }
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <button class="active" data-tab="composition">🧑‍🤝‍🧑 Состав</button>
+        <button data-tab="reprimands">⚠️ Выговоры</button>
+        <button data-tab="meetings">📅 Собрания</button>
+        <button data-tab="reports">📊 Еженедельный отчет</button>
+        <button data-tab="settings">⚙️ Настройки</button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+        <!-- СОСТАВ -->
+        <div id="composition" class="section active">
+            <h2>🧑‍🤝‍🧑 Состав сотрудников</h2>
+            <div id="compositionContainer" class="member-list"></div>
+        </div>
+
+        <!-- ВЫГОВОРЫ -->
+        <div id="reprimands" class="section">
+            <h2>⚠️ Выговоры</h2>
+            <div class="card">
+                <div class="flex-row">
+                    <select id="reprimandUserSelect" style="min-width:140px;"></select>
+                    <select id="reprimandType">
+                        <option value="Устный">Устный</option>
+                        <option value="Строгий">Строгий</option>
+                    </select>
+                    <button class="btn-primary" id="addReprimandBtn">Выдать выговор</button>
+                </div>
+            </div>
+            <div id="reprimandList" class="reprimand-list"></div>
+        </div>
+
+        <!-- СОБРАНИЯ -->
+        <div id="meetings" class="section">
+            <h2>📅 Собрания</h2>
+            <div class="card">
+                <div class="flex-row">
+                    <input type="text" id="meetingName" placeholder="Название собрания" style="flex:1;">
+                    <button class="btn-primary" id="createMeetingBtn">Создать</button>
+                </div>
+            </div>
+            <div id="meetingContainer"></div>
+        </div>
+
+        <!-- ЕЖЕНЕДЕЛЬНЫЙ ОТЧЕТ -->
+        <div id="reports" class="section">
+            <h2>📊 Еженедельный отчет</h2>
+            <div class="card">
+                <div class="flex-row">
+                    <input type="text" id="reportWorkInput" placeholder="Название работы" style="flex:1;">
+                    <button class="btn-primary" id="addReportWorkBtn">Добавить работу</button>
+                </div>
+                <div id="reportWorkList" class="flex-row mt-2" style="flex-wrap:wrap; gap:6px;"></div>
+            </div>
+            <div id="reportContainer" class="report-list"></div>
+        </div>
+
+        <!-- НАСТРОЙКИ -->
+        <div id="settings" class="section">
+            <h2>⚙️ Настройки</h2>
+            <div class="card">
+                <div class="card-title">➕ Добавить сотрудника</div>
+                <div class="flex-row">
+                    <input type="text" id="newUserNick" placeholder="Ник" style="flex:1;">
+                    <input type="text" id="newUserTag" placeholder="Тег в Discord" style="flex:1;">
+                    <select id="newUserRole" style="min-width:120px;"></select>
+                    <button class="btn-primary" id="addUserBtn">Добавить</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">🏷️ Управление ролями</div>
+                <div class="flex-row">
+                    <input type="text" id="newRoleInput" placeholder="Название роли" style="flex:1;">
+                    <button class="btn-primary" id="addRoleBtn">Добавить роль</button>
+                </div>
+                <div id="roleList" class="flex-row mt-2" style="flex-wrap:wrap; gap:8px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            // ---------- DATA ----------
+            let employees = [
+                { id: 1, nick: "Alex", tag: "@alex_Dev", role: "Разработчик" },
+                { id: 2, nick: "Mira", tag: "@mira_mod", role: "Модератор" },
+                { id: 3, nick: "Tony", tag: "@tony_lead", role: "Лидер" },
+            ];
+
+            let roles = ["Разработчик", "Модератор", "Лидер", "Дизайнер"];
+
+            let reprimands = [
+                { userId: 1, type: "Устный", date: "2026-06-20" },
+                { userId: 2, type: "Строгий", date: "2026-06-21" },
+            ];
+
+            let meetings = [];
+            let reportWorks = ["Верстка", "Написание кода", "Дизайн"]; // работы для отчета
+
+            // храним отметки собраний: { meetingId: { userId: true/false } }
+            let meetingAttendance = {};
+
+            let nextEmpId = 4;
+            let nextMeetingId = 1;
+
+            // ---------- RENDER FUNCTIONS ----------
+            function renderComposition() {
+                const container = document.getElementById('compositionContainer');
+                if (!container) return;
+                if (employees.length === 0) {
+                    container.innerHTML = '<div class="member-item" style="border-left-color:#6d6f78;">Нет сотрудников</div>';
+                    return;
+                }
+                // группировка по ролям
+                const groups = {};
+                employees.forEach(emp => {
+                    const r = emp.role || 'Без роли';
+                    if (!groups[r]) groups[r] = [];
+                    groups[r].push(emp);
+                });
+
+                let html = '';
+                for (const [role, members] of Object.entries(groups)) {
+                    html += `<div style="margin-bottom:12px;"><span class="badge">${role}</span>`;
+                    members.forEach(m => {
+                        html += `<div class="member-item" style="border-left-color:#4752c4; margin-top:4px;">
+                            <span><strong>${m.nick}</strong> <span style="color:#8e9297;">${m.tag}</span></span>
+                            <span class="role-tag">${m.role}</span>
+                        </div>`;
+                    });
+                    html += `</div>`;
+                }
+                container.innerHTML = html;
+            }
+
+            function renderReprimands() {
+                const list = document.getElementById('reprimandList');
+                if (!list) return;
+                if (reprimands.length === 0) {
+                    list.innerHTML = '<div class="member-item" style="border-left-color:#6d6f78;">Выговоров нет</div>';
+                    return;
+                }
+                let html = '';
+                reprimands.forEach(r => {
+                    const user = employees.find(e => e.id === r.userId);
+                    const name = user ? `${user.nick} (${user.tag})` : `ID:${r.userId}`;
+                    html += `<div class="reprimand-item" style="border-left-color:${r.type === 'Строгий' ? '#da373c' : '#f0b232'};">
+                        <span><strong>${name}</strong> — ${r.type}</span>
+                        <span style="color:#8e9297;font-size:13px;">${r.date}</span>
+                    </div>`;
+                });
+                list.innerHTML = html;
+                // обновить селект для выдачи выговора
+                updateUserSelect();
+            }
+
+            function updateUserSelect() {
+                const sel = document.getElementById('reprimandUserSelect');
+                if (!sel) return;
+                sel.innerHTML = '';
+                employees.forEach(emp => {
+                    const opt = document.createElement('option');
+                    opt.value = emp.id;
+                    opt.textContent = `${emp.nick} (${emp.tag})`;
+                    sel.appendChild(opt);
+                });
+            }
+
+            function renderMeetings() {
+                const container = document.getElementById('meetingContainer');
+                if (!container) return;
+                if (meetings.length === 0) {
+                    container.innerHTML = '<div class="card">Нет созданных собраний</div>';
+                    return;
+                }
+                let html = '';
+                meetings.forEach(m => {
+                    const att = meetingAttendance[m.id] || {};
+                    let listHtml = '';
+                    employees.forEach(emp => {
+                        const present = att[emp.id] ? '✅' : '❌';
+                        listHtml += `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #2b2d31;">
+                            <span>${emp.nick} ${emp.tag}</span>
+                            <span>${present}</span>
+                        </div>`;
+                    });
+
+                    html += `<div class="card" style="margin-bottom:16px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span class="card-title">${m.name}</span>
+                            <span style="color:#8e9297;font-size:13px;">${m.date}</span>
+                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;">
+                            ${employees.map(emp => {
+                                const checked = att[emp.id] ? 'checked' : '';
+                                return `<label style="background:#1e1f22;padding:4px 10px;border-radius:30px;font-size:13px;display:inline-flex;align-items:center;gap:4px;">
+                                    <input type="checkbox" data-meeting="${m.id}" data-user="${emp.id}" ${checked} class="attendance-check"> ${emp.nick}
+                                </label>`;
+                            }).join('')}
+                        </div>
+                        <div style="margin-top:8px;display:flex;gap:8px;">
+                            <button class="btn-primary" data-meetingid="${m.id}" onclick="markAllPresent(this)">✅ Все есть</button>
+                            <button class="btn-danger" data-meetingid="${m.id}" onclick="markAllAbsent(this)">❌ Всех нет</button>
+                            <button class="btn-danger" style="background:#6d6f78;" data-meetingid="${m.id}" onclick="deleteMeeting(this)">🗑 Удалить</button>
+                        </div>
+                    </div>`;
+                });
+                container.innerHTML = html;
+
+                // навесить события на чекбоксы (сохранение)
+                document.querySelectorAll('.attendance-check').forEach(cb => {
+                    cb.addEventListener('change', function(e) {
+                        const meetingId = parseInt(this.dataset.meeting);
+                        const userId = parseInt(this.dataset.user);
+                        if (!meetingAttendance[meetingId]) meetingAttendance[meetingId] = {};
+                        meetingAttendance[meetingId][userId] = this.checked;
+                    });
+                });
+            }
+
+            function renderReports() {
+                const container = document.getElementById('reportContainer');
+                if (!container) return;
+                if (employees.length === 0) {
+                    container.innerHTML = '<div class="member-item" style="border-left-color:#6d6f78;">Нет сотрудников</div>';
+                    return;
+                }
+                let html = '';
+                employees.forEach(emp => {
+                    html += `<div class="report-item" style="border-left-color:#3ba55c;">
+                        <span><strong>${emp.nick}</strong> ${emp.tag}</span>
+                        <span style="display:flex;gap:6px;flex-wrap:wrap;">
+                            ${reportWorks.map(work => `<span class="badge" style="background:#1e1f22;border:1px solid #3f4147;">${work}</span>`).join('')}
+                            <span style="color:#8e9297;font-size:13px;">(все работы)</span>
+                        </span>
+                    </div>`;
+                });
+                container.innerHTML = html;
+                // отобразить список работ
+                const workList = document.getElementById('reportWorkList');
+                if (workList) {
+                    workList.innerHTML = reportWorks.map(w => 
+                        `<span class="badge" style="background:#3a3c43;padding:6px 12px;display:inline-flex;gap:8px;">
+                            ${w} 
+                            <span style="cursor:pointer;color:#da373c;" onclick="removeReportWork('${w}')">✕</span>
+                        </span>`
+                    ).join('');
+                }
+            }
+
+            function renderRoles() {
+                const list = document.getElementById('roleList');
+                if (!list) return;
+                list.innerHTML = roles.map(r => 
+                    `<span class="badge" style="background:#3a3c43;padding:6px 14px;display:inline-flex;gap:8px;">
+                        ${r}
+                        <span style="cursor:pointer;color:#da373c;" onclick="removeRole('${r}')">✕</span>
+                    </span>`
+                ).join('');
+
+                // обновить селект ролей в настройках
+                const roleSelect = document.getElementById('newUserRole');
+                if (roleSelect) {
+                    const currentVal = roleSelect.value;
+                    roleSelect.innerHTML = '';
+                    roles.forEach(r => {
+                        const opt = document.createElement('option');
+                        opt.value = r;
+                        opt.textContent = r;
+                        roleSelect.appendChild(opt);
+                    });
+                    if (roles.includes(currentVal)) roleSelect.value = currentVal;
+                }
+            }
+
+            // ---------- GLOBAL FUNCTIONS (для onclick) ----------
+            window.markAllPresent = function(btn) {
+                const meetingId = parseInt(btn.dataset.meetingid);
+                if (!meetingAttendance[meetingId]) meetingAttendance[meetingId] = {};
+                employees.forEach(emp => { meetingAttendance[meetingId][emp.id] = true; });
+                renderMeetings();
+            };
+
+            window.markAllAbsent = function(btn) {
+                const meetingId = parseInt(btn.dataset.meetingid);
+                if (!meetingAttendance[meetingId]) meetingAttendance[meetingId] = {};
+                employees.forEach(emp => { meetingAttendance[meetingId][emp.id] = false; });
+                renderMeetings();
+            };
+
+            window.deleteMeeting = function(btn) {
+                const meetingId = parseInt(btn.dataset.meetingid);
+                meetings = meetings.filter(m => m.id !== meetingId);
+                delete meetingAttendance[meetingId];
+                renderMeetings();
+            };
+
+            window.removeReportWork = function(work) {
+                reportWorks = reportWorks.filter(w => w !== work);
+                renderReports();
+            };
+
+            window.removeRole = function(role) {
+                roles = roles.filter(r => r !== role);
+                // у сотрудников с этой ролью сбросить на первую роль
+                employees = employees.map(e => {
+                    if (e.role === role) e.role = roles.length ? roles[0] : 'Без роли';
+                    return e;
+                });
+                renderRoles();
+                renderComposition();
+                renderReports();
+                updateUserSelect();
+            };
+
+            // ---------- INIT ----------
+            function init() {
+                renderComposition();
+                renderReprimands();
+                renderMeetings();
+                renderReports();
+                renderRoles();
+                updateUserSelect();
+
+                // ----- TABS -----
+                document.querySelectorAll('.sidebar button').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        const tab = this.dataset.tab;
+                        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                        document.getElementById(tab).classList.add('active');
+                    });
+                });
+
+                // ----- ADD USER (settings) -----
+                document.getElementById('addUserBtn').addEventListener('click', function() {
+                    const nick = document.getElementById('newUserNick').value.trim();
+                    const tag = document.getElementById('newUserTag').value.trim();
+                    const role = document.getElementById('newUserRole').value;
+                    if (!nick || !tag) { alert('Заполните ник и тег'); return; }
+                    employees.push({ id: nextEmpId++, nick, tag, role });
+                    document.getElementById('newUserNick').value = '';
+                    document.getElementById('newUserTag').value = '';
+                    renderComposition();
+                    renderReports();
+                    updateUserSelect();
+                    renderMeetings(); // обновить чекбоксы
+                });
+
+                // ----- ADD ROLE -----
+                document.getElementById('addRoleBtn').addEventListener('click', function() {
+                    const newRole = document.getElementById('newRoleInput').value.trim();
+                    if (!newRole) return;
+                    if (!roles.includes(newRole)) {
+                        roles.push(newRole);
+                        renderRoles();
+                    }
+                    document.getElementById('newRoleInput').value = '';
+                });
+
+                // ----- ADD REPRIMAND -----
+                document.getElementById('addReprimandBtn').addEventListener('click', function() {
+                    const userId = parseInt(document.getElementById('reprimandUserSelect').value);
+                    const type = document.getElementById('reprimandType').value;
+                    const date = new Date().toISOString().slice(0,10);
+                    reprimands.push({ userId, type, date });
+                    renderReprimands();
+                });
+
+                // ----- CREATE MEETING -----
+                document.getElementById('createMeetingBtn').addEventListener('click', function() {
+                    const name = document.getElementById('meetingName').value.trim();
+                    if (!name) { alert('Введите название'); return; }
+                    const date = new Date().toISOString().slice(0,10);
+                    const id = nextMeetingId++;
+                    meetings.push({ id, name, date });
+                    meetingAttendance[id] = {};
+                    employees.forEach(emp => { meetingAttendance[id][emp.id] = false; });
+                    document.getElementById('meetingName').value = '';
+                    renderMeetings();
+                });
+
+                // ----- ADD REPORT WORK -----
+                document.getElementById('addReportWorkBtn').addEventListener('click', function() {
+                    const work = document.getElementById('reportWorkInput').value.trim();
+                    if (!work) return;
+                    if (!reportWorks.includes(work)) {
+                        reportWorks.push(work);
+                        renderReports();
+                    }
+                    document.getElementById('reportWorkInput').value = '';
+                });
+            }
+
+            // после загрузки
+            document.addEventListener('DOMContentLoaded', init);
+        })();
+    </script>
 </body>
 </html>
